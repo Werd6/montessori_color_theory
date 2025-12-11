@@ -1,0 +1,21 @@
+{
+  "name": "montessori-color-theory-web",
+  "version": "1.0.0",
+  "description": "Web build of Montessori Color Theory using love.js",
+  "scripts": {
+    "build": "node build-web.js",
+    "prebuild": "npm install",
+    "serve": "npx serve web-build"
+  },
+  "keywords": [
+    "love2d",
+    "love.js",
+    "web",
+    "game"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {},
+  "dependencies": {}
+}
+
