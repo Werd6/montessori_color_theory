@@ -11,7 +11,7 @@ const { execSync } = require('child_process');
 
 const LOVE_FILE = path.join(__dirname, 'dist', 'MontessoriColorTheory.love');
 const OUTPUT_DIR = path.join(__dirname, 'web-build');
-const LOVE_JS_VERSION = '11.5'; // Match LOVE2D version in conf.lua
+// love.js uses main branch - version compatibility is handled by the love.js runtime
 const LOVE_JS_REPO = 'https://github.com/Davidobot/love.js.git';
 
 console.log('Building Montessori Color Theory for web...\n');
@@ -32,9 +32,9 @@ if (!fs.existsSync(loveJsPath)) {
     console.log('This may take a few minutes...\n');
     
     try {
-        // Clone love.js repository
-        console.log(`Cloning love.js (LOVE ${LOVE_JS_VERSION})...`);
-        execSync(`git clone --depth 1 --branch ${LOVE_JS_VERSION} ${LOVE_JS_REPO} ${loveJsPath}`, {
+        // Clone love.js repository (main branch contains latest version)
+        console.log('Cloning love.js from GitHub...');
+        execSync(`git clone --depth 1 ${LOVE_JS_REPO} ${loveJsPath}`, {
             stdio: 'inherit',
             cwd: __dirname
         });
