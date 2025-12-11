@@ -25,23 +25,6 @@ if (!fs.existsSync(LOVE_FILE)) {
 
 // Check for love.js
 const loveJsPath = path.join(__dirname, 'love.js');
-// love.js CLI might be in different locations - check common paths
-let loveJsCli = path.join(loveJsPath, 'love.js');
-if (!fs.existsSync(loveJsCli)) {
-    // Try alternative locations
-    const alternatives = [
-        path.join(loveJsPath, 'compile.js'),
-        path.join(loveJsPath, 'tools', 'compile.js'),
-        path.join(loveJsPath, 'bin', 'love.js'),
-        path.join(loveJsPath, 'compile')
-    ];
-    for (const alt of alternatives) {
-        if (fs.existsSync(alt)) {
-            loveJsCli = alt;
-            break;
-        }
-    }
-}
 
 if (!fs.existsSync(loveJsPath)) {
     console.log('love.js not found. Downloading...');
@@ -64,6 +47,39 @@ if (!fs.existsSync(loveJsPath)) {
     }
 }
 
+// Find love.js CLI - check common locations
+let loveJsCli = null;
+const possibleCliPaths = [
+    path.join(loveJsPath, 'love.js'),
+    path.join(loveJsPath, 'compile.js'),
+    path.join(loveJsPath, 'tools', 'compile.js'),
+    path.join(loveJsPath, 'bin', 'love.js'),
+    path.join(loveJsPath, 'compile'),
+    path.join(loveJsPath, 'index.js')
+];
+
+for (const cliPath of possibleCliPaths) {
+    if (fs.existsSync(cliPath)) {
+        loveJsCli = cliPath;
+        console.log(`Found love.js CLI at: ${cliPath}`);
+        break;
+    }
+}
+
+if (!loveJsCli) {
+    console.error('Error: Could not find love.js CLI file.');
+    console.error('Searched in:');
+    possibleCliPaths.forEach(p => console.error(`  - ${p}`));
+    console.error('\nlove.js directory contents:');
+    try {
+        const files = fs.readdirSync(loveJsPath);
+        files.slice(0, 30).forEach(f => console.error(`  - ${f}`));
+    } catch (e) {
+        console.error('Could not read love.js directory');
+    }
+    process.exit(1);
+}
+
 // Create output directory if it doesn't exist
 if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -75,23 +91,20 @@ console.log(`Input: ${LOVE_FILE}`);
 console.log(`Output: ${OUTPUT_DIR}\n`);
 
 try {
-    // Check if love.js CLI exists
-    if (!fs.existsSync(loveJsCli)) {
-        // List directory to help debug
-        console.error(`Error: love.js CLI not found at ${loveJsCli}`);
-        console.error(`love.js directory contents:`);
-        try {
-            const files = fs.readdirSync(loveJsPath);
-            console.error(files.slice(0, 20).join(', '));
-        } catch (e) {
-            console.error('Could not read love.js directory');
-        }
-        process.exit(1);
-    }
-    
     // Run love.js compiler
     // love.js typically needs to be run from its own directory
-    const command = `node "${loveJsCli}" "${LOVE_FILE}" "${OUTPUT_DIR}" --title "Montessori Color Theory"`;
+    // Try different command formats based on what love.js expects
+    let command;
+    
+    // Check if it's a Python script
+    if (loveJsCli.endsWith('.py') || loveJsCli.includes('python')) {
+        command = `python3 "${loveJsCli}" "${LOVE_FILE}" "${OUTPUT_DIR}" --title "Montessori Color Theory"`;
+    } else {
+        // Node.js script
+        command = `node "${loveJsCli}" "${LOVE_FILE}" "${OUTPUT_DIR}" --title "Montessori Color Theory"`;
+    }
+    
+    console.log(`Running: ${command}\n`);
     
     execSync(command, {
         stdio: 'inherit',
