@@ -38,12 +38,36 @@ if (!fs.existsSync(loveJsPath)) {
             cwd: __dirname
         });
         console.log('love.js downloaded successfully!\n');
+        
+        // Install love.js dependencies
+        console.log('Installing love.js dependencies...');
+        execSync('npm install', {
+            stdio: 'inherit',
+            cwd: loveJsPath
+        });
+        console.log('love.js dependencies installed!\n');
     } catch (error) {
-        console.error('Error downloading love.js:', error.message);
-        console.error('\nPlease ensure git is installed and try again.');
+        console.error('Error downloading or setting up love.js:', error.message);
+        console.error('\nPlease ensure git and npm are installed and try again.');
         console.error('Alternatively, manually download love.js from:');
         console.error(`  ${LOVE_JS_REPO}`);
         process.exit(1);
+    }
+} else {
+    // Check if dependencies are installed
+    const nodeModulesPath = path.join(loveJsPath, 'node_modules');
+    if (!fs.existsSync(nodeModulesPath)) {
+        console.log('Installing love.js dependencies...');
+        try {
+            execSync('npm install', {
+                stdio: 'inherit',
+                cwd: loveJsPath
+            });
+            console.log('love.js dependencies installed!\n');
+        } catch (error) {
+            console.error('Error installing love.js dependencies:', error.message);
+            process.exit(1);
+        }
     }
 }
 
