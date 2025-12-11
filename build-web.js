@@ -16,6 +16,27 @@ const LOVE_JS_REPO = 'https://github.com/Davidobot/love.js.git';
 
 console.log('Building Montessori Color Theory for web...\n');
 
+// Rebuild .love file to ensure it's up to date
+console.log('Rebuilding .love file with latest source files...');
+try {
+    const sourceFiles = ['main.lua', 'conf.lua', 'color_names.lua'];
+    const missingFiles = sourceFiles.filter(f => !fs.existsSync(path.join(__dirname, f)));
+    
+    if (missingFiles.length > 0) {
+        console.warn(`Warning: Missing source files: ${missingFiles.join(', ')}`);
+    } else {
+        // Create .love file by zipping source files
+        execSync(`zip -r "${LOVE_FILE}" ${sourceFiles.join(' ')}`, {
+            stdio: 'inherit',
+            cwd: __dirname
+        });
+        console.log('✓ .love file rebuilt successfully!\n');
+    }
+} catch (error) {
+    console.warn('Warning: Could not rebuild .love file:', error.message);
+    console.warn('Using existing .love file if available...\n');
+}
+
 // Check if .love file exists
 if (!fs.existsSync(LOVE_FILE)) {
     console.error(`Error: ${LOVE_FILE} not found!`);
