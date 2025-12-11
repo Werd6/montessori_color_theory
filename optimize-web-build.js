@@ -116,10 +116,13 @@ if (html.includes('</body>')) {
 }
 
 // Add meta tags for better mobile support and SEO
+// Also add HTTP-equiv headers for SharedArrayBuffer support (backup in case server headers don't work)
 const metaTags = `
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="description" content="Interactive educational application for exploring color theory through hands-on color mixing. Learn about additive (RGB), subtractive (CYM), and traditional paint (RYB) color mixing.">
 <meta name="theme-color" content="#667eea">
+<meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+<meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
 `;
 
 if (html.includes('</head>')) {
