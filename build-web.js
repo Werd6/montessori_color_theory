@@ -79,14 +79,49 @@ const possibleCliPaths = [
     path.join(loveJsPath, 'tools', 'compile.js'),
     path.join(loveJsPath, 'bin', 'love.js'),
     path.join(loveJsPath, 'compile'),
-    path.join(loveJsPath, 'index.js')
+    path.join(loveJsPath, 'index.js'),
+    path.join(loveJsPath, 'src', 'index.js'),
+    path.join(loveJsPath, 'lib', 'index.js')
 ];
+
+// Also search recursively in subdirectories (excluding node_modules)
+function findCliRecursive(dir, maxDepth = 2, currentDepth = 0) {
+    if (currentDepth > maxDepth) return null;
+    
+    try {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        for (const entry of entries) {
+            if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+            
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isFile() && (entry.name === 'index.js' || entry.name === 'love.js' || entry.name === 'compile.js')) {
+                return fullPath;
+            }
+            if (entry.isDirectory()) {
+                const found = findCliRecursive(fullPath, maxDepth, currentDepth + 1);
+                if (found) return found;
+            }
+        }
+    } catch (e) {
+        // Ignore errors
+    }
+    return null;
+}
 
 for (const cliPath of possibleCliPaths) {
     if (fs.existsSync(cliPath)) {
         loveJsCli = cliPath;
         console.log(`Found love.js CLI at: ${cliPath}`);
         break;
+    }
+}
+
+// If not found in common locations, search recursively
+if (!loveJsCli) {
+    console.log('Searching for CLI in subdirectories...');
+    loveJsCli = findCliRecursive(loveJsPath);
+    if (loveJsCli) {
+        console.log(`Found love.js CLI at: ${loveJsCli}`);
     }
 }
 
@@ -97,7 +132,11 @@ if (!loveJsCli) {
     console.error('\nlove.js directory contents:');
     try {
         const files = fs.readdirSync(loveJsPath);
-        files.slice(0, 30).forEach(f => console.error(`  - ${f}`));
+        files.forEach(f => {
+            const fullPath = path.join(loveJsPath, f);
+            const stat = fs.statSync(fullPath);
+            console.error(`  - ${f} (${stat.isDirectory() ? 'dir' : 'file'})`);
+        });
     } catch (e) {
         console.error('Could not read love.js directory');
     }
