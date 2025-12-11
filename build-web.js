@@ -54,6 +54,30 @@ if (!fs.existsSync(loveJsPath)) {
         process.exit(1);
     }
 } else {
+    // Check if love.js directory is valid (has source files, not just node_modules)
+    const hasSourceFiles = fs.existsSync(path.join(loveJsPath, 'package.json')) || 
+                          fs.existsSync(path.join(loveJsPath, 'index.js')) ||
+                          fs.existsSync(path.join(loveJsPath, 'love.js')) ||
+                          fs.existsSync(path.join(loveJsPath, 'compile.js'));
+    
+    if (!hasSourceFiles) {
+        console.log('love.js directory exists but appears incomplete. Re-cloning...');
+        try {
+            // Remove incomplete directory
+            execSync(`rm -rf "${loveJsPath}"`, { stdio: 'inherit', cwd: __dirname });
+            // Re-clone
+            console.log('Cloning love.js from GitHub...');
+            execSync(`git clone --depth 1 ${LOVE_JS_REPO} ${loveJsPath}`, {
+                stdio: 'inherit',
+                cwd: __dirname
+            });
+            console.log('love.js downloaded successfully!\n');
+        } catch (error) {
+            console.error('Error re-cloning love.js:', error.message);
+            process.exit(1);
+        }
+    }
+    
     // Check if dependencies are installed
     const nodeModulesPath = path.join(loveJsPath, 'node_modules');
     if (!fs.existsSync(nodeModulesPath)) {
